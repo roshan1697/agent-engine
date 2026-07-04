@@ -1,11 +1,24 @@
+import {z} from 'zod'
+
 export type StepStatus = "PENDING" | "QUEUED" | "RUNNING" | "COMPLETED" | "FAILED"
 
 export type WorkflowStep = {
-    id: string
-    command: string
-    dependsOn?: string[]
+    id:string
+    command:string
+    dependsOn?:string[]
     retries?: number
 }
+
+export const WorkflowSchema = z.object({
+    workflowId: z.string(),
+    steps:z.object({
+        id: z.string(),
+        command: z.string(),
+        dependsOn: z.string().array().optional(),
+        retries: z.number().optional()
+    }).array()
+})
+
 
 export type Workflow = {
     workflowId: string
@@ -27,4 +40,5 @@ export type StepResult = {
     stdout?: string
     exitCode?: number
     error?: string
-}
+}   
+
