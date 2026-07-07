@@ -31,7 +31,7 @@ function App() {
     { id: 'D', command: form.fourth, dependsOn: ['B', 'C'] }
   ]
 }
-    const stringData = JSON.stringify(data)
+    //const stringData = JSON.stringify(data)
     try {
         const res = await axios.post('http://localhost:3000/work', {data})
     console.log(res)

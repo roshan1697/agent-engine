@@ -8,10 +8,8 @@ const app = express()
 
 app.use(express.json())
 app.use(cors({
-    origin:'http://localhost:5173/',
-     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
-      optionsSuccessStatus: 200 
+    origin:'http://localhost:5173',
+    
 }))
 app.get('/')
 
@@ -25,14 +23,19 @@ app.get('/workflow',async(req,res)=>{
 
 
 app.post('/work', async(req,res)=>{
-    const workflow = WorkflowSchema.safeParse(req.body)
-    console.log(req.body)
+    const workflow = WorkflowSchema.safeParse(req.body.data)
+    
     if(!workflow.success){
-        res.status(504).json({message:'validation error'})
+        res.status(511).json({message:'validation error'})
         return
     }
-    const response = await graphResolve(workflow.data.steps)
-    res.status(200).json({response})
+    try {
+        const response = await graphResolve(workflow.data.steps)
+        res.status(200).json({response})
+    } catch (error) {
+        console.error(error)
+    }
+
 })
 
 app.listen('3000',()=>

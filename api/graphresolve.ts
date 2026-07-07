@@ -21,7 +21,7 @@ const graphResolve = async(steps:WorkflowStep[]):Promise<{result:string,id:strin
             else {
                 return step
             }
-        }).filter(step => !firstStep.includes(step))
+        }).filter(step => !firstStep.map(s => s.id).includes(step.id))
 
         resolve([
             ...result.map((r,ind) => ({
@@ -29,7 +29,7 @@ const graphResolve = async(steps:WorkflowStep[]):Promise<{result:string,id:strin
                 id:firstStep[ind]!.id
             }) ), ...await graphResolve(steps)
         ])
-
+        
 
     })
 }
