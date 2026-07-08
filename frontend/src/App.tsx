@@ -10,7 +10,8 @@ function App() {
     third: '',
     fourth: ''
   })  
-
+  const [data, setData] = useState([])
+  
   const handleChange = (e) => {
     const {name , value} = e.target
     setForm((perv)=> 
@@ -31,10 +32,11 @@ function App() {
     { id: 'D', command: form.fourth, dependsOn: ['B', 'C'] }
   ]
 }
-    //const stringData = JSON.stringify(data)
     try {
+        
         const res = await axios.post('http://localhost:3000/work', {data})
-    console.log(res)
+        
+        setData(res.data.response)
     } catch (error) {
       console.log(error)
     }
@@ -93,9 +95,20 @@ function App() {
           </button>
         </div>
       </form>
-      <div>
+      
+
+        <div className='text-3xl text-white'>
         
-      </div>
+          {
+            data.length === 0 ? <span>Loading...</span> : data.map((d,i) => (
+              <span key={i}>
+                <h1>{d.id}</h1>
+                <a>{d.result}</a>
+              </span>
+            ))
+          }
+        
+      </div> 
     </>
   )
 }

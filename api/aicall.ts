@@ -8,7 +8,7 @@ const AICall = async(message:string):Promise<{result:string}> => {
         input:message
     })
 
-    // return res.output_text
+    return {result:res.output_text!}
 
     // const res = await ollama.chat({
     //     model:'gemma4:12b',
@@ -17,10 +17,9 @@ const AICall = async(message:string):Promise<{result:string}> => {
     //         content:message
     //     }]
     // })  
-    // console.log(res.message.content)
+    console.log(res)
     // return res.message.content
-    
-    return  { result: res.output_text!}
+   // return  { result: res.message.content !}
     // console.log(message)
     // return { result:message}
 }
