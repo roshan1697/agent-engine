@@ -36,7 +36,7 @@ function App() {
         
         const res = await axios.post('http://localhost:3000/work', {data})
         
-        setData(res.data.response)
+       // setData(res.data.response)
     } catch (error) {
       console.log(error)
     }

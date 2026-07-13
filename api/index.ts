@@ -23,6 +23,8 @@ app.get('/workflow',async(req,res)=>{
 
 
 app.post('/work', async(req,res)=>{
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+
     const workflow = WorkflowSchema.safeParse(req.body.data)
     
     if(!workflow.success){
@@ -30,8 +32,8 @@ app.post('/work', async(req,res)=>{
         return
     }
     try {
-        const response = await graphResolve(workflow.data.steps)
-        res.status(200).json({response})
+        await graphResolve(workflow.data.steps , res)
+        res.end()
     } catch (error) {
         console.error(error)
     }
