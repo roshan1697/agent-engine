@@ -3,23 +3,31 @@ import AICall from "./aicall"
 import type { WorkflowStep } from "./types"
 
 const graphResolve = async (steps: WorkflowStep[], res: Response): Promise<{ result: string, id: string }[]> => {
+    const send = (obj:unknown) => res.write(JSON.stringify(obj) + '\n')
     return new Promise(async (resolve) => {
         if (!steps.length) {
+            send({type:'flow-done'})
+            res.end()
             resolve([])
             return
         }
         const firstStep = steps.filter(step => !step.dependsOn || step.dependsOn.length === 0)
 
-        const result = await Promise.all(firstStep.map(step => AICall(step.command)))
+        await Promise.all(firstStep.map( async   (step) => {
+            
+            const res = await AICall(step.command)
+            for await (const chunk of res){
+                if(chunk.message.content != ''){
 
-        for await (const chunk of result) {
-            for await (const stream of chunk){
-                console.log(stream.delta.text)
+                    send({nodeId:step.id, type:'chunk', content:chunk.message.content})
+                }
+                if(chunk.done === true){
+                    send({nodeId:step.id, type: 'done'})
+                }
             }
-            if (chunk) {
-               // res.write(chunk)
-            }
-        }
+        }))
+
+        
         steps = steps.map(step => {
             if (step.dependsOn) {
                 return {

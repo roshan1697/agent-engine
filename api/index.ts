@@ -23,8 +23,9 @@ app.get('/workflow',async(req,res)=>{
 
 
 app.post('/work', async(req,res)=>{
-    res.setHeader("Content-Type", "text/plain; charset=utf-8");
-
+    res.setHeader('Content-Type', 'application/x-ndjson')
+    res.setHeader('Cache-Control', 'no-cache')
+    res.flushHeaders()
     const workflow = WorkflowSchema.safeParse(req.body.data)
     
     if(!workflow.success){
