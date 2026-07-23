@@ -6,8 +6,10 @@ const graphResolve = async (steps: WorkflowStep[], res: Response): Promise<{ res
     const send = (obj:unknown) => res.write(JSON.stringify(obj) + '\n')
     return new Promise(async (resolve) => {
         if (!steps.length) {
+
             send({type:'flow-done'})
             res.end()
+            console.log({type:'flow-done'})
             resolve([])
             return
         }
@@ -19,9 +21,11 @@ const graphResolve = async (steps: WorkflowStep[], res: Response): Promise<{ res
             for await (const chunk of res){
                 if(chunk.message.content != ''){
 
+                    console.log({nodeId:step.id, type:'chunk', content:chunk.message.content})
                     send({nodeId:step.id, type:'chunk', content:chunk.message.content})
                 }
                 if(chunk.done === true){
+                    console.log({nodeId:step.id, type: 'done'})
                     send({nodeId:step.id, type: 'done'})
                 }
             }
