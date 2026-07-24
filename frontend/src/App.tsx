@@ -36,9 +36,7 @@ function App() {
     }
     try {
 
-      const res = await axios.post('http://localhost:3000/work', { data }, {
-        responseType: 'stream'
-      })
+    
       const response = await fetch('http://localhost:3000/work', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -54,11 +52,9 @@ function App() {
           break
         }
         buffer += decoder.decode(value, { stream: true })
-
         const lines = buffer.split('\n')
         buffer = lines.pop() ?? ''
-
-        for (const line in lines) {
+        for (const line of lines) {
           if (!line.trim()) continue
           const event = JSON.parse(line)
           if (event.type === 'flow-done') continue
@@ -169,7 +165,7 @@ function FlowNodeCard({ id }: { id: string }) {
       <div className="text-xs uppercase tracking-wide opacity-60">
         {id} · {node?.status ?? 'idle'}
       </div>
-      <pre className="whitespace-pre-wrap text-sm min-h-[1.5rem]">
+      <pre className="whitespace-pre-wrap text-sm min-h-6">
         {node?.text ?? ''}
       </pre>
     </div>
