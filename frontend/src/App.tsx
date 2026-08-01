@@ -1,7 +1,6 @@
 
 import { useState } from 'react'
 import BasicInput from './components/basicinput'
-import axios from 'axios'
 import { useFlowStore } from './store/store'
 
 function App() {
