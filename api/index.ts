@@ -41,7 +41,7 @@ app.post('/work', async(req,res)=>{
 
 })
 
-app.listen('3000',()=>
+app.listen('3000',async()=>
     console.log('server is running on port 3000')
 )
 

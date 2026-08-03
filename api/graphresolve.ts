@@ -4,11 +4,13 @@ import type { WorkflowStep } from "./types"
 import { Ollama, type Message, type Tool, type WebSearchRequest } from 'ollama'
 
 const ollama = new Ollama({ host: 'http://127.0.0.1:11434' })
-const webRes = async (userquery: string) => {
+export const webRes = async (userquery: string) => {
+    console.log(userquery)
     return await ollama.webSearch({
         query: userquery,
         maxResults: 3
     })
+    
 }
 
 const getWeather = async (loc: string) => {
@@ -16,10 +18,8 @@ const getWeather = async (loc: string) => {
     if (!apiKey) {
         throw new Error("WEATHER_API_KEY is not defined in environment variables");
     }
-    console.log(loc)
     const res = await fetch(`https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${encodeURIComponent(loc)}`)
     const data = await res.json()
-    console.log(data)
     return { loc, tempC: data.current.temp_c, condition: data.current.condition.text }
 }
 
@@ -27,7 +27,7 @@ const tools: Tool[] = [{
     type: 'function',
     function: {
         name: 'web_res',
-        description: 'Search web and gives relevant search result from the web',
+        description: 'Searches the web for current events, news, and real-world facts. Do NOT trigger this tool for simple math, coding questions, or general conversation. Only use this when you need external, real-time information to be accurate.',
         parameters: {
             type: 'object',
             required: ['userquery'],
@@ -70,6 +70,9 @@ const graphResolve = async (steps: WorkflowStep[], res: Response): Promise<{ res
 
         await Promise.all(firstStep.map(async (step) => {
             const messages: Message[] = [{
+                role:'system',
+                content:'You are an AI assistant. You must use the web_res tool to verify real-world facts, current events, and information about specific people or places. However, you MUST NOT use the search tool for basic mathematics (like addition or multiplication), casual greetings, formatting text, or logic puzzles. Answer those directly using your own reasoning.'
+            },{
                 role: 'user',
                 content: step.command
             }]
@@ -85,21 +88,32 @@ const graphResolve = async (steps: WorkflowStep[], res: Response): Promise<{ res
 
                 })
                 const toolCall = []
+                let thinking = ''
+                let content = ''
                 for await (const chunk of res) {
-                    if (chunk.message.content != '') {
+                    if (chunk.message.thinking) {
+                        thinking += chunk.message.thinking
+                    }
 
+                    if (chunk.message.content != '') {
+                        content += chunk.message.content
                         console.log({ nodeId: step.id, type: 'chunk', content: chunk.message.content })
                         send({ nodeId: step.id, type: 'chunk', content: chunk.message.content })
                     }
-                    if (chunk.done === true) {
-                        console.log({ nodeId: step.id, type: 'done' })
-                        send({ nodeId: step.id, type: 'done' })
-                    }
+                    // if (chunk.done === true) {
+                    //     console.log({ nodeId: step.id, type: 'done' })
+                    //     send({ nodeId: step.id, type: 'done' })
+                    // }
+
                     if (chunk.message.tool_calls) {
                         toolCall.push(...chunk.message.tool_calls)
                         console.log(chunk.message.tool_calls)
 
                     }
+                }
+
+                if(thinking || content || toolCall.length){
+                    messages.push({role:'assistant', thinking,content,tool_calls:toolCall})
                 }
                 if (!toolCall.length) {
 
@@ -122,7 +136,7 @@ const graphResolve = async (steps: WorkflowStep[], res: Response): Promise<{ res
                     }
                 }
             }
-
+            send({ nodeId: step.id, type: 'done' })
 
         }))
 
