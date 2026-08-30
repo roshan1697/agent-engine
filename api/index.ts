@@ -3,6 +3,7 @@ import express from 'express'
 import { WorkflowSchema } from './types'
 import graphResolve from './graphresolve'
 import cors from 'cors'
+import { validateGraph } from './validategraph'
 
 const app = express()
 
@@ -32,11 +33,21 @@ app.post('/work', async(req,res)=>{
         res.status(511).json({message:'validation error'})
         return
     }
+
+    const validation = validateGraph(workflow.data.steps)
+    if (!validation.valid) {
+        res.status(400).json({ message: 'invalid workflow graph', errors: validation.errors })
+        return
+    }
     try {
         await graphResolve(workflow.data.steps , res)
-        res.end()
     } catch (error) {
-        console.error(error)
+        console.error('workflow execution failed:', error)
+        res.write(JSON.stringify({ type: 'flow-error', message: 'internal error while executing workflow' }) + '\n')
+    }
+    finally{
+        res.end()
+
     }
 
 })

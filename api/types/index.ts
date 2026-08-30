@@ -42,3 +42,11 @@ export type StepResult = {
     error?: string
 }   
 
+export type FlowEvent =
+    | { nodeId: string; type: "chunk"; content: string }
+    | { nodeId: string; type: "done" }
+    | { nodeId: string; type: "error"; message: string }
+    | { nodeId: string; type: "skipped"; message: string }
+    | { type: "flow-done" }
+    | { type: "flow-error"; message: string }
+

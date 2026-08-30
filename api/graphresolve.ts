@@ -1,7 +1,13 @@
 import type { Response } from "express"
 import AICall from "./aicall"
-import type { WorkflowStep } from "./types"
+import type { FlowEvent, WorkflowStep } from "./types"
 import { Ollama, type Message, type Tool, type WebSearchRequest } from 'ollama'
+
+
+type WeatherApiResponse = {
+    current?: { temp_c: number; condition: { text: string } }
+    error?: { message: string }
+}
 
 const ollama = new Ollama({ host: 'http://127.0.0.1:11434' })
 export const webRes = async (userquery: string) => {
@@ -16,10 +22,13 @@ export const webRes = async (userquery: string) => {
 const getWeather = async (loc: string) => {
     const apiKey = process.env.WEATHER_API_KEY
     if (!apiKey) {
-        throw new Error("WEATHER_API_KEY is not defined in environment variables");
+        throw new Error("WEATHER_API_KEY is not defined in environment variables")
     }
     const res = await fetch(`https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${encodeURIComponent(loc)}`)
-    const data = await res.json()
+    const data = await res.json() as WeatherApiResponse
+    if (!data.current) {
+        throw new Error(data.error?.message ?? `could not resolve weather for "${loc}"`)
+    }
     return { loc, tempC: data.current.temp_c, condition: data.current.condition.text }
 }
 
@@ -100,10 +109,7 @@ const graphResolve = async (steps: WorkflowStep[], res: Response): Promise<{ res
                         console.log({ nodeId: step.id, type: 'chunk', content: chunk.message.content })
                         send({ nodeId: step.id, type: 'chunk', content: chunk.message.content })
                     }
-                    // if (chunk.done === true) {
-                    //     console.log({ nodeId: step.id, type: 'done' })
-                    //     send({ nodeId: step.id, type: 'done' })
-                    // }
+                    
 
                     if (chunk.message.tool_calls) {
                         toolCall.push(...chunk.message.tool_calls)
