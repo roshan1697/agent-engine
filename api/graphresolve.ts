@@ -9,9 +9,12 @@ type WeatherApiResponse = {
     error?: { message: string }
 }
 
+const MAX_TOOL_ITERATIONS = Number(process.env.MAX_TOOL_ITERATIONS ?? 8)
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? 'gemma4:12b'
+
 const ollama = new Ollama({ host: 'http://127.0.0.1:11434' })
 export const webRes = async (userquery: string) => {
-    console.log(userquery)
+    
     return await ollama.webSearch({
         query: userquery,
         maxResults: 3

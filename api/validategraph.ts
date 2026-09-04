@@ -1,5 +1,5 @@
 
-
+import { type WorkflowStep } from "./types";
 
 export type GraphValidationResult =
     | { valid: true }
@@ -10,7 +10,7 @@ export const validateGraph = (steps: WorkflowStep[]): GraphValidationResult => {
 
     const idCounts = new Map<string, number>()
     for (const step of steps) {
-        idCounts.set(step.id, (idCounts.get(step.id) ?? 0)  1)
+        idCounts.set(step.id, (idCounts.get(step.id) ?? 0) + 1)
     }
     for (const [id, count] of idCounts) {
         if (count > 1) errors.push(`duplicate step id: "${id}"`)
